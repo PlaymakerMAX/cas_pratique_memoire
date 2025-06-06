@@ -1,4 +1,4 @@
-name: Analyse de Sécurité (Bandit & SonarQube)
+name: Analyse de Sécurité (SAST, SCA)
 
 on:
   push:
@@ -6,14 +6,13 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Job 1: Scan SAST rapide avec Bandit (ne change pas)
   bandit-scan:
     name: Scan SAST avec Bandit
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-      - name: Installation de Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Installation des dépendances
@@ -24,18 +23,32 @@ jobs:
       - name: Lancement de l'analyse statique avec Bandit
         run: bandit -r . -l low || true
 
+  # NOUVEAU JOB : Scan des dépendances avec pip-audit
+  sca-scan:
+    name: Scan SCA des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installation de pip-audit
+        run: python -m pip install --upgrade pip-audit
+      - name: Lancement du scan des dépendances
+        # La commande scanne le fichier requirements.txt
+        run: pip-audit -r requirements.txt
+
+  # Job 3: Scan approfondi avec SonarQube (ne change pas)
   sonarqube-scan:
-    needs: bandit-scan
+    needs: [bandit-scan, sca-scan] # Ce job attend la fin des deux précédents
     name: Scan avec SonarQube
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # LA CORRECTION EST ICI : on utilise le nom et la version stables et officiels
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: " https://2949-92-184-105-35.ngrok-free.app"
+          SONAR_HOST_URL: "https://2949-92-184-105-35.ngrok-free.app"
