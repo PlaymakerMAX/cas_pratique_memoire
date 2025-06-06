@@ -51,5 +51,6 @@ jobs:
         with:
           target: 'http://127.0.0.1:8000/'
           # LA CORRECTION EST ICI
-          artifact_name: 'zap-scan-report' 
+          artifact_name: 'zapscan' 
           allow_issue_writing: false
+          
