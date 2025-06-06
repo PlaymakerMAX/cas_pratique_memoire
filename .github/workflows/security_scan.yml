@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1 & 2: Analyses statiques (ne changent pas)
+  # Job 1: Analyses statiques combinées
   sast-and-sca-scans:
-    name: Scans SAST & SCA
+    name: Scans Statiques (SAST & SCA)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
       - name: Lancement du scan pip-audit (SCA)
         run: pip-audit -r requirements.txt || true
 
-  # Job 3: Analyse approfondie avec SonarQube (ne change pas)
+  # Job 2: Analyse approfondie avec SonarQube
   sonarqube-scan:
     needs: sast-and-sca-scans
     name: Scan avec SonarQube
@@ -40,19 +40,32 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: "https://2949-92-184-105-35.ngrok-free.app"
 
-  # NOUVEAU JOB FINAL : Analyse Dynamique avec ZAP
+  # Job 3: Analyse dynamique DAST
   dast-scan:
     name: Scan DAST avec OWASP ZAP
     runs-on: ubuntu-latest
-    needs: sast-and-sca-scans # Doit attendre la fin des scans statiques
+    needs: sast-and-sca-scans
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
 
+      - name: Installation de Python et des dépendances
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+
+      - name: Lancement de l'application Django en arrière-plan
+        run: |
+          # On lance le serveur en arrière-plan avec '&'
+          python manage.py runserver &
+          # On attend 15 secondes pour être sûr que le serveur est bien démarré
+          sleep 15
+
       - name: Scan DAST avec ZAP Baseline
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          # Dit à ZAP de scanner l'image Docker qu'il va construire à partir de notre Dockerfile
-          docker_name: 'cas-pratique-image'
-          # Dit à ZAP de publier les résultats sous forme d'un rapport
+          # On dit à ZAP de scanner l'URL de notre serveur de développement
+          target: 'http://127.0.0.1:8000/'
+          # On crée un rapport à la fin
           artifact_name: zap_scan_report
