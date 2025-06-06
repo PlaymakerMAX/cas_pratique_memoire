@@ -40,4 +40,4 @@ jobs:
       - name: Lancement de l'analyse statique avec Bandit
         run: |
           # L'option -r . scanne le répertoire courant
-          bandit -r . --level medium
+          bandit -r . --severity-level medium
