@@ -21,11 +21,15 @@ jobs:
           pip install -r requirements.txt
           pip install bandit pip-audit
       - name: Lancement du scan Bandit (SAST)
+<<<<<<< HEAD
         # On laisse le pipeline continuer même si des failles sont trouvées pour avoir tous les rapports
+=======
+>>>>>>> 88c290a075ef3fc35aefe53ec2e4cac89ff0417d
         run: bandit -r . -l low || true
       - name: Lancement du scan pip-audit (SCA)
         run: pip-audit -r requirements.txt || true
 
+<<<<<<< HEAD
   # Job 2: Analyse dynamique DAST
   dast-scan:
     name: Scan DAST avec OWASP ZAP
@@ -55,3 +59,49 @@ jobs:
         with:
           target: 'http://127.0.0.1:8000/'
           artifact_name: zap_scan_report
+=======
+  # Job 2: Analyse approfondie avec SonarQube
+  sonarqube-scan:
+    needs: sast-and-sca-scans
+    name: Scan avec SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "https://2949-92-184-105-35.ngrok-free.app"
+
+  # Job 3: Analyse dynamique DAST
+  dast-scan:
+    name: Scan DAST avec OWASP ZAP
+    runs-on: ubuntu-latest
+    needs: sast-and-sca-scans
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Python et des dépendances
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+
+      - name: Lancement de l'application Django en arrière-plan
+        run: |
+          # On lance le serveur en arrière-plan avec '&'
+          python manage.py runserver &
+          # On attend 15 secondes pour être sûr que le serveur est bien démarré
+          sleep 15
+
+      - name: Scan DAST avec ZAP Baseline
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          # On dit à ZAP de scanner l'URL de notre serveur de développement
+          target: 'http://127.0.0.1:8000/'
+          # On crée un rapport à la fin
+          artifact_name: zap_scan_report
+>>>>>>> 88c290a075ef3fc35aefe53ec2e4cac89ff0417d
