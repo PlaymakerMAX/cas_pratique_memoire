@@ -1,4 +1,4 @@
-name: Analyse de Sécurité (SAST, SCA, DAST)
+name: Analyse de Sécurité Complète (SAST, SCA, DAST)
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1: Analyses statiques combinées
   sast-and-sca-scans:
     name: Scans Statiques (SAST & SCA)
     runs-on: ubuntu-latest
@@ -25,9 +24,6 @@ jobs:
       - name: Lancement du scan pip-audit (SCA)
         run: pip-audit -r requirements.txt || true
 
- # ... (le début du fichier ne change pas)
-
-  # Job 2: Analyse dynamique DAST
   dast-scan:
     name: Scan DAST avec OWASP ZAP
     runs-on: ubuntu-latest
@@ -36,14 +32,15 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      # ... (les étapes d'installation et de lancement du serveur ne changent pas)
       - name: Installation de Python et des dépendances
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
+
       - name: Lancement des migrations Django
         run: python manage.py migrate
+
       - name: Lancement de l'application Django en arrière-plan
         run: |
           python manage.py runserver &
@@ -53,8 +50,6 @@ jobs:
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'http://127.0.0.1:8000/'
-          artifact_name: zap_scan_report
-          # LA CORRECTION EST ICI : On désactive la création d'issues
+          # LA CORRECTION EST ICI
+          artifact_name: 'zap-scan-report' 
           allow_issue_writing: false
-
-          
