@@ -1,0 +1,45 @@
+# docker-compose.yml
+version: "3"
+
+services:
+  sonarqube:
+    image: sonarqube:lts-community # Utilise l'image Long-Term Support, Community Edition
+    container_name: sonarqube
+    ports:
+      - "9000:9000" # Expose le port 9000 de SonarQube sur le port 9000 de ton PC
+    networks:
+      - sonar-net
+    environment:
+      - sonar.jdbc.url=jdbc:postgresql://db:5432/sonar
+      - sonar.jdbc.username=sonar
+      - sonar.jdbc.password=sonar
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  db:
+    image: postgres:13 # Base de données PostgreSQL
+    container_name: sonardb
+    networks:
+      - sonar-net
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+
+volumes:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql:
+  postgresql_data:
+
+networks:
+  sonar-net:
+    driver: bridge
