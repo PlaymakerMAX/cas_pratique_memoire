@@ -1,4 +1,31 @@
-# ... (le début du fichier ne change pas)
+name: Analyse de Sécurité (SAST, SCA, DAST)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Analyses statiques combinées
+  sast-and-sca-scans:
+    name: Scans Statiques (SAST & SCA)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installation des dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit pip-audit
+      - name: Lancement du scan Bandit (SAST)
+        run: bandit -r . -l low || true
+      - name: Lancement du scan pip-audit (SCA)
+        run: pip-audit -r requirements.txt || true
+
+ # ... (le début du fichier ne change pas)
 
   # Job 2: Analyse dynamique DAST
   dast-scan:
@@ -29,3 +56,5 @@
           artifact_name: zap_scan_report
           # LA CORRECTION EST ICI : On désactive la création d'issues
           allow_issue_writing: false
+
+          
