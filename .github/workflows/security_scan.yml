@@ -22,26 +22,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install bandit
-      # On ajoute "|| true" pour que le pipeline continue même si Bandit trouve des failles
-      # Cela permet au job SonarQube de s'exécuter pour qu'on puisse voir son rapport
       - name: Lancement de l'analyse statique avec Bandit
+        # On ajoute "|| true" pour que le pipeline continue même si Bandit trouve des failles
+        # Cela permet au job SonarQube de s'exécuter pour qu'on puisse voir son rapport
         run: bandit -r . -l low || true
 
   # Job 2: Analyse approfondie avec SonarQube
   sonarqube-scan:
-    # Ce job a besoin que le job bandit-scan soit terminé
     needs: bandit-scan
     name: Scan avec SonarQube
     runs-on: ubuntu-latest
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-        # On doit récupérer l'historique complet pour que SonarQube puisse analyser les nouveaux codes
         with:
+          # On doit récupérer l'historique complet pour que SonarQube puisse analyser les nouveaux codes
           fetch-depth: 0
 
       - name: Lancement du SonarQube Scanner
-        uses: SonarSource/sonar-scanner-run-action@master
+        # CORRECTION ICI : On utilise @v2 au lieu de @master
+        uses: SonarSource/sonar-scanner-run-action@v2
         env:
           # Le token secret que tu as configuré dans les paramètres GitHub
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
