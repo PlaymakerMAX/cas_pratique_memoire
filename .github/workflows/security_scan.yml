@@ -49,8 +49,16 @@ jobs:
       - name: Scan DAST avec ZAP Baseline
         uses: zaproxy/action-baseline@v0.12.0
         with:
+          # On dit à ZAP de scanner, mais on ne lui demande plus de gérer l'artefact
           target: 'http://127.0.0.1:8000/'
-          # LA CORRECTION EST ICI
-          artifact_name: 'zapscan' 
-          allow_issue_writing: false
+
+      # NOUVELLE ETAPE : On utilise l'action officielle de GitHub pour uploader le rapport
+      - name: Upload du rapport de scan ZAP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Nom que portera l'artefact téléchargeable
+          name: zap-scan-report
+          # Chemin vers le fichier généré par ZAP que l'on veut uploader
+          path: report_html.html
           
