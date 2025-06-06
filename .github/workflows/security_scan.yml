@@ -5,6 +5,11 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+# NOUVEAU BLOC : On donne explicitement les permissions au workflow
+permissions:
+  contents: read      # Permet de checkout le code
+  actions: write     # Permet de téléverser (uploader) les artifacts
+
 jobs:
   sast-and-sca-scans:
     name: Scans Statiques (SAST & SCA)
@@ -31,34 +36,26 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-
       - name: Installation de Python et des dépendances
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-
       - name: Lancement des migrations Django
         run: python manage.py migrate
-
       - name: Lancement de l'application Django en arrière-plan
         run: |
           python manage.py runserver &
           sleep 15
-
       - name: Scan DAST avec ZAP Baseline
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          # On dit à ZAP de scanner, mais on ne lui demande plus de gérer l'artefact
           target: 'http://127.0.0.1:8000/'
-
-      # NOUVELLE ETAPE : On utilise l'action officielle de GitHub pour uploader le rapport
+          allow_issue_writing: false
       - name: Upload du rapport de scan ZAP
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          # Nom que portera l'artefact téléchargeable
           name: zap-scan-report
-          # Chemin vers le fichier généré par ZAP que l'on veut uploader
           path: report_html.html
           
