@@ -1,0 +1,30 @@
+<!-- todolist_app/templates/todolist_app/base.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List DevSecOps</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .task { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .task:last-child { border-bottom: none; }
+        .task a { font-size: 1.2em; }
+        .btn { display: inline-block; background: #28a745; color: #fff; padding: 10px 15px; border-radius: 5px; margin-top: 15px; }
+        form { margin-top: 20px; }
+        input[type='text'], textarea { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ddd; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ma To-Do List Sécurisée</h1>
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

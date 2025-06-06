@@ -1,0 +1,15 @@
+<!-- todolist_app/templates/todolist_app/task_list.html -->
+{% extends 'todolist_app/base.html' %}
+
+{% block content %}
+    <h2>Liste des tâches</h2>
+    {% for task in tasks %}
+        <div class="task">
+            <a href="{% url 'task_detail' pk=task.pk %}">{{ task.title }}</a>
+            - <span>{{ task.completed|yesno:"Terminée,En cours" }}</span>
+        </div>
+    {% empty %}
+        <p>Aucune tâche pour le moment.</p>
+    {% endfor %}
+    <a href="{% url 'task_create' %}" class="btn">Ajouter une tâche</a>
+{% endblock %}

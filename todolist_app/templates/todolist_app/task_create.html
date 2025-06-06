@@ -1,0 +1,15 @@
+<!-- todolist_app/templates/todolist_app/task_create.html -->
+{% extends 'todolist_app/base.html' %}
+
+{% block content %}
+    <h2>Créer une nouvelle tâche</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Titre de la tâche" required>
+        <br>
+        <textarea name="description" placeholder="Description (optionnelle)"></textarea>
+        <br>
+        <button type="submit">Créer</button>
+    </form>
+    <a href="{% url 'task_list' %}">Retour à la liste</a>
+{% endblock %}

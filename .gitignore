@@ -1,0 +1,16 @@
+# Fichiers de cache Python
+__pycache__/
+*.pyc
+
+# Base de données
+db.sqlite3
+
+# Environnement virtuel
+.venv/
+
+# Fichiers d'IDE et d'OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store

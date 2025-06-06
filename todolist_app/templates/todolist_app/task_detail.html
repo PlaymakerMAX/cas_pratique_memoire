@@ -1,0 +1,23 @@
+<!-- todolist_app/templates/todolist_app/task_detail.html -->
+{% extends 'todolist_app/base.html' %}
+
+{% block content %}
+    <h2>{{ task.title }}</h2>
+    <p><strong>Status :</strong> {{ task.completed|yesno:"Terminée,En cours" }}</p>
+    <p><strong>Créée le :</strong> {{ task.created_at|date:"d/m/Y H:i" }}</p>
+    <hr>
+    <h3>Description :</h3>
+
+    <!-- 
+    VULNÉRABILITÉ INTENTIONNELLE :
+    Le filtre "|safe" ci-dessous indique à Django de ne PAS échapper le contenu HTML.
+    Si un utilisateur entre un script comme "<script>alert('XSS!')</script>" dans la description,
+    ce script sera exécuté dans le navigateur des autres utilisateurs qui visitent cette page.
+    C'est une faille de type Cross-Site Scripting (XSS).
+    Un outil SAST comme Bandit ou SonarQube devrait détecter l'utilisation de "|safe" comme un risque.
+    -->
+    <div>{{ task.description|safe }}</div>
+
+    <hr>
+    <a href="{% url 'task_list' %}">Retour à la liste</a>
+{% endblock %}
