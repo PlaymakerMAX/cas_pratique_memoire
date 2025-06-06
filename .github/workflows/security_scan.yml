@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1: Scan rapide avec Bandit
   bandit-scan:
     name: Scan SAST avec Bandit
     runs-on: ubuntu-latest
@@ -23,27 +22,20 @@ jobs:
           pip install -r requirements.txt
           pip install bandit
       - name: Lancement de l'analyse statique avec Bandit
-        # On ajoute "|| true" pour que le pipeline continue même si Bandit trouve des failles
-        # Cela permet au job SonarQube de s'exécuter pour qu'on puisse voir son rapport
         run: bandit -r . -l low || true
 
-  # Job 2: Analyse approfondie avec SonarQube
   sonarqube-scan:
     needs: bandit-scan
     name: Scan avec SonarQube
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          # On doit récupérer l'historique complet pour que SonarQube puisse analyser les nouveaux codes
           fetch-depth: 0
 
-      - name: Lancement du SonarQube Scanner
-        # CORRECTION ICI : On utilise @v2 au lieu de @master
-        uses: SonarSource/sonar-scanner-run-action@v2
+      # LA CORRECTION EST ICI : on utilise le nom et la version stables et officiels
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v2
         env:
-          # Le token secret que tu as configuré dans les paramètres GitHub
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          # L'URL publique fournie par ngrok
-          SONAR_HOST_URL: "https://2949-92-184-105-35.ngrok-free.app"
+          SONAR_HOST_URL: " https://2949-92-184-105-35.ngrok-free.app"
