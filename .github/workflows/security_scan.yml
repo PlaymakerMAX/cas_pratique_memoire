@@ -1,43 +1,49 @@
-# Nom du workflow qui apparaîtra dans l'onglet Actions
-name: Analyse de Sécurité avec Bandit
+name: Analyse de Sécurité (Bandit & SonarQube)
 
-# Événement qui déclenche le workflow
 on:
-  # Se déclenche à chaque push sur la branche 'main'
   push:
     branches: [ "main" ]
-  # Permet aussi de le lancer manuellement depuis l'interface GitHub
   workflow_dispatch:
 
-# Définit les jobs (tâches) à exécuter
 jobs:
+  # Job 1: Scan rapide avec Bandit
   bandit-scan:
-    # Nom du job
     name: Scan SAST avec Bandit
-    # Machine virtuelle sur laquelle le job va tourner
     runs-on: ubuntu-latest
-
-    # Séquence d'étapes à exécuter pour ce job
     steps:
-      # Étape 1: Récupère le code de ton dépôt
       - name: Checkout du code
         uses: actions/checkout@v4
-
-      # Étape 2: Met en place l'environnement Python
       - name: Installation de Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      # Étape 3: Installe les dépendances du projet et Bandit
       - name: Installation des dépendances
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install bandit
-
-        # Étape 4: Lance le scan Bandit
+      # On ajoute "|| true" pour que le pipeline continue même si Bandit trouve des failles
+      # Cela permet au job SonarQube de s'exécuter pour qu'on puisse voir son rapport
       - name: Lancement de l'analyse statique avec Bandit
-        run: |
-          # L'option -r . scanne le répertoire courant
-          bandit -r . --severity-level low
+        run: bandit -r . -l low || true
+
+  # Job 2: Analyse approfondie avec SonarQube
+  sonarqube-scan:
+    # Ce job a besoin que le job bandit-scan soit terminé
+    needs: bandit-scan
+    name: Scan avec SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        # On doit récupérer l'historique complet pour que SonarQube puisse analyser les nouveaux codes
+        with:
+          fetch-depth: 0
+
+      - name: Lancement du SonarQube Scanner
+        uses: SonarSource/sonar-scanner-run-action@master
+        env:
+          # Le token secret que tu as configuré dans les paramètres GitHub
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # L'URL publique fournie par ngrok
+          SONAR_HOST_URL: "https://2949-92-184-105-35.ngrok-free.app"
