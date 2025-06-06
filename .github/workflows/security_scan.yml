@@ -1,0 +1,44 @@
+# Nom du workflow qui apparaîtra dans l'onglet Actions
+name: Analyse de Sécurité avec Bandit
+
+# Événement qui déclenche le workflow
+on:
+  # Se déclenche à chaque push sur la branche 'main'
+  push:
+    branches: [ "main" ]
+  # Permet aussi de le lancer manuellement depuis l'interface GitHub
+  workflow_dispatch:
+
+# Définit les jobs (tâches) à exécuter
+jobs:
+  bandit-scan:
+    # Nom du job
+    name: Scan SAST avec Bandit
+    # Machine virtuelle sur laquelle le job va tourner
+    runs-on: ubuntu-latest
+
+    # Séquence d'étapes à exécuter pour ce job
+    steps:
+      # Étape 1: Récupère le code de ton dépôt
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      # Étape 2: Met en place l'environnement Python
+      - name: Installation de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Étape 3: Installe les dépendances du projet et Bandit
+      - name: Installation des dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit
+
+      # Étape 4: Lance le scan Bandit
+      - name: Lancement de l'analyse statique avec Bandit
+        run: |
+          # L'option -r . scanne le répertoire courant
+          # L'option --exit-code 1 fait échouer le workflow si des problèmes de sévérité MOYENNE ou HAUTE sont trouvés
+          bandit -r . --exit-code 1
